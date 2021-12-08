@@ -21,24 +21,24 @@ instance Read Action where
 data Position = Position { horizontal :: Int, depth :: Int, aim :: Int } deriving (Show, Eq) 
 
 moveUp :: Int -> Position -> Position
-moveUp change (pos@Position{ depth }) = pos{ depth = (depth - change) }
+moveUp change (pos@Position{ aim }) = pos{ aim = (aim - change) }
 
 moveDown :: Int -> Position -> Position
-moveDown change (pos@Position{ depth }) = pos{ depth = (depth + change) }
+moveDown change (pos@Position{ aim }) = pos{ aim = (aim + change) }
 
 moveForward :: Int -> Position -> Position
-moveForward change (pos@Position{ horizontal }) = pos{ horizontal = (horizontal + change) }
+moveForward change (pos@Position{ horizontal, depth, aim }) = pos{ horizontal = (horizontal + change), depth = (depth + (aim * change)) }
 
-processAction :: Action -> Position -> Position
-processAction (Up amount)      = moveUp      amount
-processAction (Down amount)    = moveDown    amount
-processAction (Forward amount) = moveForward amount
+processAction :: Position -> Action -> Position
+processAction pos (Up amount)      = moveUp      amount pos
+processAction pos (Down amount)    = moveDown    amount pos
+processAction pos (Forward amount) = moveForward amount pos
 
 process filename = do
     content <- readFile filename
     let stringData = lines content
     let actions = map read stringData :: [Action]
-    let finalPosition = foldr processAction (Position { horizontal = 0, depth = 0, aim = 0 }) actions
+    let finalPosition = foldl processAction (Position { horizontal = 0, depth = 0, aim = 0 }) actions
     let answer = (horizontal finalPosition) * (depth finalPosition)
     print answer
 
